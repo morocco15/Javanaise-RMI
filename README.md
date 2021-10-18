@@ -1,3 +1,3 @@
 # Javanaise-RMI
 
-Projet Javainaise RMI
+Projet Javanaise RMI
