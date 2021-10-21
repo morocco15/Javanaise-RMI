@@ -35,7 +35,7 @@ public interface JvnRemoteServer extends Remote {
 	* @throws java.rmi.RemoteException,JvnException
 	**/
         public Serializable jvnInvalidateWriter(int joi)
-	throws java.rmi.RemoteException,jvn.JvnException;
+                throws java.rmi.RemoteException, jvn.JvnException, InterruptedException;
 	
 	/**
 	* Reduce the Write lock of a JVN object 

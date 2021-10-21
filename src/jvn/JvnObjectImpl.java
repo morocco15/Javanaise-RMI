@@ -1,33 +1,57 @@
+/***
+ * JAVANAISE Implementation
+ * JvnServerImpl class
+ * Implementation of a Jvn server
+ * Contact:
+ *
+ * Authors:
+ * 		Walid BOUKRIS
+ * 	    Labib
+ */
+
 package jvn;
 
 import java.io.Serializable;
 
 public class JvnObjectImpl implements JvnObject {
-    //TODO: Wait et Notify
+
+    //Attributes
     private int id;
     private LockState lockState;
-    private Serializable objetpartage;
+    private Serializable object;
 
-
+    //Constructor
     public JvnObjectImpl(int id, Serializable o){
         this.lockState = LockState.WLT;
         this.id = id;
-        this.objetpartage = o;
+        this.object = o;
     }
 
     public void setLockState(LockState lockState) {
         this.lockState = lockState;
     }
 
-    public void setObjetpartage(Serializable objetpartage) {
-        this.objetpartage = objetpartage;
+    public void setObject(Serializable objetpartage) {
+        this.object = objetpartage;
+    }
+
+    public int jvnGetObjectId() {
+        return this.id;
+    }
+
+    public Serializable jvnGetSharedObject() {
+        return this.object;
     }
 
     @Override
+    public String toString() {
+        return  "ObjectID = " + this.id +"  LockState = "+ this.lockState.toString() + "  Value = " + this.object;
+    }
+
     public void jvnLockRead() throws JvnException {
         switch(this.lockState){
             case NL :
-                JvnServerImpl.jvnGetServer().jvnLockRead(this.jvnGetObjectId());
+                this.object = JvnServerImpl.jvnGetServer().jvnLockRead(this.jvnGetObjectId());
                 this.setLockState(LockState.RLT);
                 break;
             case RLC :
@@ -36,20 +60,17 @@ public class JvnObjectImpl implements JvnObject {
             case WLC :
                 this.setLockState(LockState.RLT_WLC);
                 break;
-            //case RLT :
-            //case WLT :
-            //case RLT_WLC :*/
-            default :
-                break;
+            default :// RLT, WLT, RLT_WLC
+                throw new JvnException("[JVN Lock Read] Error state: "+this.lockState);
         }
         
     }
 
-
-    @Override
     public void jvnLockWrite() throws JvnException, InterruptedException {
         switch(this.lockState){
             case NL :
+                JvnServerImpl.jvnGetServer().jvnLockWrite(this.jvnGetObjectId());
+                this.setLockState(LockState.WLT);
             case RLC :
                 JvnServerImpl.jvnGetServer().jvnLockWrite(this.jvnGetObjectId());
                 this.setLockState(LockState.WLT);
@@ -57,43 +78,24 @@ public class JvnObjectImpl implements JvnObject {
             case WLC :
                 this.setLockState(LockState.WLT);
                 break;
-
-            default :
-                break;
+            default :// RLT, WLT, RLT_WLC
+                throw new JvnException("[JVN Lock Write] Error state: "+this.lockState);
         }
-        
     }
 
-
-    @Override
-    public void jvnUnLock() throws JvnException, InterruptedException {
+    public void jvnUnLock() throws JvnException {
         switch(this.lockState){
-            case RLC :
             case RLT :
-                this.jvnInvalidateReader();
+                this.lockState = LockState.RLC;
                 break;
-            case WLC :
             case WLT :
-                this.jvnInvalidateWriter();
-               // notify();
-                break;
             case RLT_WLC :
-                this.jvnInvalidateReader();
-                this.jvnInvalidateWriter();
-                //
+                this.lockState = LockState.WLC;
                 break;
-            default :
-                break;
+            default :// NL, WLC, RLC
+                throw new JvnException("[JVN UnLock] Error state: "+this.lockState);
         }
-        notify();
-    }
-
-    public int jvnGetObjectId() throws JvnException {
-        return this.id;
-    }
-
-    public Serializable jvnGetSharedObject() throws JvnException {
-        return this.objetpartage;
+        this.notify();
     }
 
     public void jvnInvalidateReader() throws JvnException, InterruptedException {
@@ -103,43 +105,63 @@ public class JvnObjectImpl implements JvnObject {
                 break;
             case RLT :
             case RLT_WLC :
-                wait();
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                    throw new JvnException("[JVN jvnInvalidateReader (InterruptedException) ] Error : "+e.getMessage());
+                }
                 break;
-            default :
-                break;
+            default :// NL, WLC, WLT
+                throw new JvnException("[JVN jvnInvalidateReader ] Error state: "+this.lockState);
         }
     }
 
     public Serializable jvnInvalidateWriter() throws JvnException, InterruptedException {
         switch(this.lockState){
-            case WLC : this.setLockState(LockState.NL);
-            case WLT : wait();
-            case RLT_WLC : this.setLockState(LockState.RLT);
-            default :
+            case WLC :
+                this.setLockState(LockState.NL);
                 break;
+            case WLT :
+                this.wait();
+                break;
+            case RLT_WLC :
+                this.setLockState(LockState.RLT);
+                break;
+            default :// NL, RLC, RLT
+                throw new JvnException("[JVN jvnInvalidateWriter ] Error state: "+this.lockState);
         }
 
-        return this.objetpartage;
+        return this.object;
     }
 
     public Serializable jvnInvalidateWriterForReader() throws JvnException, InterruptedException {
-        //Not
         switch(this.lockState){
             case WLC :
+            case RLT_WLC :
                 this.setLockState(LockState.RLT);
-            case WLT :
-                wait();
-                this.setLockState(LockState.RLT);
-            case RLT_WLC : this.setLockState(LockState.RLT);
-            default :
                 break;
+            case WLT :
+                try {
+                    this.wait();
+                    this.setLockState(LockState.RLT);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
+            default :// NL, RLC, RLT
+                throw new JvnException("[JVN InvalidateWriterForReader ] Error state: "+this.lockState);
         }
-
-        return this.objetpartage;
-    }
-
-    @Override
-    public String toString() {
-        return  "ObjectID = " + this.id +"  LockState = "+ this.lockState.toString() + "  Value = " + this.objetpartage;
+        return this.object;
     }
 }
+/*
+        switch (this.lockState) {
+            case RLT_WLC:
+            case WLT:
+                    this.wait();
+                    this.setLockState(LockState.RLT);
+            case WLC:
+                    this.etat = Etat.RLC;
+*/
+
+

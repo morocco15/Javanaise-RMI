@@ -80,5 +80,5 @@ public interface JvnObject extends Serializable {
 
    public void setLockState(LockState nl);
 
-   public void setObjetpartage(Serializable objetpartage);
+   public void setObject(Serializable objetpartage);
 }

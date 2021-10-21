@@ -82,7 +82,7 @@ public class JvnCoordImpl
   public void jvnRegisterObject(String jon, JvnObject jo, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
     if (this.hashmapObjects.containsKey(jon)) {
-      throw new jvn.JvnException("Object "+jon+" already registered!");
+        throw new JvnException("[JVN jvnRegisterObject ] Error Object: "+jon+" already registered!");
     }
 
     hashmapName.put(jon, jo.jvnGetObjectId());
@@ -106,20 +106,20 @@ public class JvnCoordImpl
   public JvnObject jvnLookupObject(String jon, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
     //Get object
-      System.out.println("coordinator jvnLookupObject");
+    System.out.println("coordinator jvnLookupObject");
 
-      Integer id = hashmapName.get(jon);
+    Integer id = hashmapName.get(jon);
     JvnObject object = hashmapObjects.get(id);
 
-    if(object == null) {
-      return null;
-    }
     if (!this.hashmapServerObjects.containsKey(js)) {
       hashmapServerObjects.put(js, new ArrayList<JvnObject>());
     }
+    if(object == null) {
+      return null;
+    }
     hashmapServerObjects.get(js).add(object);
     object.setLockState(LockState.NL);
-      return object;
+    return object;
   }
   
   /**
@@ -133,10 +133,8 @@ public class JvnCoordImpl
            throws java.rmi.RemoteException, JvnException, InterruptedException {
 
     if(!hashmapObjects.containsKey(joi) ) {
-       System.out.println("Object " + joi + " not found");
-       return null;
+        throw new JvnException("[JVN jvnLockRead ] Error Object "+joi+" not found!");
     }
-    // to be completed
     JvnRemoteServer jsWrite = hashmapLockWrite.get(joi);
     Serializable object = null;
 
@@ -146,7 +144,7 @@ public class JvnCoordImpl
            hashmapLockWrite.put(joi, null);
            hashmapLockRead.get(joi).add(jsWrite);
        }
-        hashmapObjects.get(joi).setObjetpartage(object);
+        hashmapObjects.get(joi).setObject(object);
     } else {
        object = hashmapObjects.get(joi).jvnGetSharedObject();
     }
@@ -165,10 +163,8 @@ public class JvnCoordImpl
   **/
    public Serializable jvnLockWrite(int joi, JvnRemoteServer js)
            throws java.rmi.RemoteException, JvnException, InterruptedException {
-       System.out.println("jvnLockWrite in Coordinateur");
         if(!hashmapObjects.containsKey(joi) ) {
-           System.out.println("Object " + joi + " not found");
-           return null;
+            throw new JvnException("[JVN jvnLockRead ] Error Object "+joi+" not found!");
         }
 
         JvnRemoteServer jsWrite = hashmapLockWrite.get(joi);
@@ -177,7 +173,7 @@ public class JvnCoordImpl
         if(jsWrite != null && !jsWrite.equals(js)) {
             object = jsWrite.jvnInvalidateWriter(joi);
             hashmapLockWrite.put(joi, null);
-            hashmapObjects.get(joi).setObjetpartage(object);
+            hashmapObjects.get(joi).setObject(object);
         }
         else {
            object = hashmapObjects.get(joi).jvnGetSharedObject();

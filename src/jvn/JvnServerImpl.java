@@ -30,11 +30,9 @@ public class JvnServerImpl
 	private static JvnServerImpl js = null;
 
 	private JvnRemoteCoord coordinator;
-	private HashMap<Integer, JvnObject> objects;
 
-	// Local CACH: Map of JVN objects
+	// Local Map of JVN objects
 	private HashMap<Integer, JvnObject> hashmapObjects;
-	private HashMap<String, Integer> hashmapName;
 
   /**
   * Default constructor
@@ -42,9 +40,7 @@ public class JvnServerImpl
   **/
 	private JvnServerImpl() throws Exception {
 		super();
-		this.objects = new HashMap<Integer, JvnObject>();
 		this.hashmapObjects = new HashMap<Integer, JvnObject>();
-		this.hashmapName = new HashMap<String, Integer>();
 
 		try {
 			Registry registry = LocateRegistry.getRegistry(4000);
@@ -95,7 +91,6 @@ public class JvnServerImpl
 		try{
 			int id = coordinator.jvnGetObjectId();
 			JvnObject obj = new JvnObjectImpl(id, o);
-			System.out.println("Object creer");
 			return obj;
 		}catch(Exception e){
 			JvnException err = new JvnException(e.getMessage());
@@ -115,8 +110,6 @@ public class JvnServerImpl
 			coordinator.jvnRegisterObject(jon,jo,this);
 			//Put object in LOCAL!
 			hashmapObjects.put(jo.jvnGetObjectId(), jo);
-			hashmapName.put(jon, jo.jvnGetObjectId());
-			System.out.println("Object "+jon+" registered successfully");
 		}catch(Exception e){
 			JvnException err = new JvnException(e.getMessage());
 			throw(err);
@@ -131,19 +124,12 @@ public class JvnServerImpl
 	**/
 	public  JvnObject jvnLookupObject(String jon)
 	throws jvn.JvnException {
-		//Lock up in local
-		if( hashmapName.containsKey(jon)){
-			int id = hashmapName.get(jon);
-			return hashmapObjects.get(id);
-		}
 
 		try{
 			JvnObject obj = this.coordinator.jvnLookupObject(jon,this);
-			//TODO: Put in local
 			if (obj != null) {
-				//Putting the object in the local cache
+				//Putting the object in the local
 				this.hashmapObjects.put(obj.jvnGetObjectId(), obj);
-				this.hashmapName.put(jon, obj.jvnGetObjectId());
 			}
 			return obj;
 		}catch(Exception e){
@@ -177,9 +163,7 @@ public class JvnServerImpl
    public Serializable jvnLockWrite(int joi)
 	 throws JvnException {
 		try{
-			System.out.println("coordinator.jvnLockWrite proceed");
 			Serializable res = this.coordinator.jvnLockWrite(joi,this);
-			System.out.println("coordinator.jvnLockWrite Done");
 			return res;
 		}catch(Exception e){
 			JvnException err = new JvnException(e.getMessage());
@@ -210,14 +194,12 @@ public class JvnServerImpl
 	* @throws java.rmi.RemoteException,JvnException
 	**/
   public Serializable jvnInvalidateWriter(int joi)
-	throws java.rmi.RemoteException,jvn.JvnException {
-	  	// TODO
+		  throws java.rmi.RemoteException, jvn.JvnException, InterruptedException {
 	  	JvnObject jo = this.hashmapObjects.get(joi);// get jvnobj associated to joi
-		return jo;
-/*		if ( jo != null)
+		if ( jo != null)
 		  return jo.jvnInvalidateWriter();
 		else
-		  return null;*/
+		  return null;
   };
 	
 	/**

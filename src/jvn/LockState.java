@@ -6,5 +6,5 @@ public enum LockState {
     WLC,     // Write Lock Cached
     RLT,     // Read Lock Taken
     WLT,     // Write Lock Taken
-    RLT_WLC, // Read Lock Taken - Write Lock Taken
+    RLT_WLC, // Read Lock Taken - Write Lock Cached
 }
