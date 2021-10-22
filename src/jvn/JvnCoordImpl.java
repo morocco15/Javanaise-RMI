@@ -106,7 +106,7 @@ public class JvnCoordImpl
   public JvnObject jvnLookupObject(String jon, JvnRemoteServer js)
   throws java.rmi.RemoteException,jvn.JvnException{
     //Get object
-    System.out.println("coordinator jvnLookupObject");
+    //System.out.println("coordinator jvnLookupObject");
 
     Integer id = hashmapName.get(jon);
     JvnObject object = hashmapObjects.get(id);

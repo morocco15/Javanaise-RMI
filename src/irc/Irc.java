@@ -38,8 +38,10 @@ public class Irc {
 		if (jo == null) {
 
 			jo = js.jvnCreateObject((Serializable) new Sentence());
+
 			// after creation, I have a write lock on the object
 			jo.jvnUnLock();
+
 			js.jvnRegisterObject("IRC", jo);
 		}
 		// create the graphical part of the Chat application
@@ -91,18 +93,23 @@ public class Irc {
   **/
 	public void actionPerformed (ActionEvent e) {
 	 try {
-		// lock the object in read mode
-		irc.sentence.jvnLockRead();
-		
-		// invoke the method
-		String s = ((Sentence)(irc.sentence.jvnGetSharedObject())).read();
-		
-		// unlock the object
-		irc.sentence.jvnUnLock();
-		
-		// display the read value
-		irc.data.setText(s);
-		irc.text.append(s+"\n");
+			System.out.println("--------------------------------------------");
+			System.out.println("Lets Read!");
+			// lock the object in read mode
+			irc.sentence.jvnLockRead();
+			System.out.println("jvn Lock Read DONE!");
+
+			// invoke the method
+			String s = ((Sentence)(irc.sentence.jvnGetSharedObject())).read();
+			System.out.println("jvn Lock Read DONE in OBJ!");
+
+			// unlock the object
+			irc.sentence.jvnUnLock();
+			System.out.println("jvn UnLock READ DONE!");
+
+			// display the read value
+			irc.data.setText(s);
+			irc.text.append(s+"\n");
 	   } catch (JvnException | InterruptedException je) {
 		   System.out.println("IRC problem : " + je.getMessage());
 	   }
@@ -124,21 +131,21 @@ public class Irc {
    **/
 	public void actionPerformed (ActionEvent e) {
 		try {
-		// get the value to be written from the buffer
-    String s = irc.data.getText();
-			System.out.println("Write : " + s);
-    // lock the object in write mode
-		irc.sentence.jvnLockWrite();
+			System.out.println("--------------------------------------------");
+			// get the value to be written from the buffer
+			String s = irc.data.getText();
+			System.out.println("Lets Write : " + s);
+			// lock the object in write mode
+			irc.sentence.jvnLockWrite();
+			System.out.println("jvn Lock Write DONE!");
+			// invoke the method
+			((Sentence)(irc.sentence.jvnGetSharedObject())).write(s);
+			System.out.println("jvn Lock Write DONE in OBJ!");
 
-			System.out.println("jvnLockWrite  ");
-		// invoke the method
-		((Sentence)(irc.sentence.jvnGetSharedObject())).write(s);
+			// unlock the object
+			irc.sentence.jvnUnLock();
+			System.out.println("jvn UnLock Write DONE!");
 
-			System.out.println("jvn Lock Write  Done");
-		// unlock the object
-		irc.sentence.jvnUnLock();
-
-			System.out.println("jvn UnLock Write  ");
 	 } catch (JvnException | InterruptedException je) {
 		   System.out.println("IRC problem  : " + je.getMessage());
 	 }

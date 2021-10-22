@@ -51,6 +51,7 @@ public class JvnObjectImpl implements JvnObject {
     public void jvnLockRead() throws JvnException {
         switch(this.lockState){
             case NL :
+            case RLT:/*  Anyone can READ !*/
                 this.object = JvnServerImpl.jvnGetServer().jvnLockRead(this.jvnGetObjectId());
                 this.setLockState(LockState.RLT);
                 break;
@@ -72,6 +73,7 @@ public class JvnObjectImpl implements JvnObject {
                 JvnServerImpl.jvnGetServer().jvnLockWrite(this.jvnGetObjectId());
                 this.setLockState(LockState.WLT);
             case RLC :
+            case RLT :
                 JvnServerImpl.jvnGetServer().jvnLockWrite(this.jvnGetObjectId());
                 this.setLockState(LockState.WLT);
                 break;
@@ -83,7 +85,7 @@ public class JvnObjectImpl implements JvnObject {
         }
     }
 
-    public void jvnUnLock() throws JvnException {
+    public synchronized void jvnUnLock() throws JvnException {
         switch(this.lockState){
             case RLT :
                 this.lockState = LockState.RLC;
@@ -95,28 +97,35 @@ public class JvnObjectImpl implements JvnObject {
             default :// NL, WLC, RLC
                 throw new JvnException("[JVN UnLock] Error state: "+this.lockState);
         }
-        this.notify();
+        try{
+            this.notify();
+        }catch (Exception e){
+            throw new JvnException("[JVN UnLock] notify:"+e.getMessage());
+        }
+
     }
 
-    public void jvnInvalidateReader() throws JvnException, InterruptedException {
+    public synchronized void jvnInvalidateReader() throws JvnException, InterruptedException {
+        //System.out.println("ICI La merde ce passe hahaha"+this.lockState);
         switch(this.lockState){
             case RLC :
-                this.setLockState(LockState.NL);
-                break;
             case RLT :
             case RLT_WLC :
-                try {
+                /*try {
                     this.wait();
                 } catch (InterruptedException e) {
                     throw new JvnException("[JVN jvnInvalidateReader (InterruptedException) ] Error : "+e.getMessage());
-                }
+                }*/
+                this.setLockState(LockState.NL);
+                break;
+            case NL:
                 break;
             default :// NL, WLC, WLT
                 throw new JvnException("[JVN jvnInvalidateReader ] Error state: "+this.lockState);
         }
     }
 
-    public Serializable jvnInvalidateWriter() throws JvnException, InterruptedException {
+    public synchronized Serializable jvnInvalidateWriter() throws JvnException, InterruptedException {
         switch(this.lockState){
             case WLC :
                 this.setLockState(LockState.NL);
@@ -134,7 +143,7 @@ public class JvnObjectImpl implements JvnObject {
         return this.object;
     }
 
-    public Serializable jvnInvalidateWriterForReader() throws JvnException, InterruptedException {
+    public synchronized Serializable jvnInvalidateWriterForReader() throws JvnException, InterruptedException {
         switch(this.lockState){
             case WLC :
             case RLT_WLC :
