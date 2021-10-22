@@ -6,7 +6,7 @@
  *
  * Authors:
  * 		Walid BOUKRIS
- * 	    Labib
+ * 	    Labib Bouri
  */
 
 package jvn;
@@ -106,7 +106,6 @@ public class JvnObjectImpl implements JvnObject {
     }
 
     public synchronized void jvnInvalidateReader() throws JvnException, InterruptedException {
-        //System.out.println("ICI La merde ce passe hahaha"+this.lockState);
         switch(this.lockState){
             case RLC :
             case RLT :

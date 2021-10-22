@@ -2,10 +2,11 @@
  * JAVANAISE Implementation
  * JvnServerImpl class
  * Implementation of a Jvn server
- * Contact: 
+ * Contact:
  *
  * Authors:
  * 		Walid BOUKRIS
+ * 	    Labib Bouri
  */
 
 package jvn;

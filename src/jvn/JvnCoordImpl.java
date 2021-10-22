@@ -1,10 +1,12 @@
 /***
  * JAVANAISE Implementation
- * JvnCoordImpl class
- * This class implements the Javanaise central coordinator
- * Contact:  
+ * JvnServerImpl class
+ * Implementation of a Jvn server
+ * Contact:
  *
- * Authors: 
+ * Authors:
+ * 		Walid BOUKRIS
+ * 	    Labib Bouri
  */
 
 package jvn;
