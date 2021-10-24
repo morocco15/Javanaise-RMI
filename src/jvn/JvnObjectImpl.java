@@ -162,14 +162,3 @@ public class JvnObjectImpl implements JvnObject {
         return this.object;
     }
 }
-/*
-        switch (this.lockState) {
-            case RLT_WLC:
-            case WLT:
-                    this.wait();
-                    this.setLockState(LockState.RLT);
-            case WLC:
-                    this.etat = Etat.RLC;
-*/
-
-
