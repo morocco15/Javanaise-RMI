@@ -51,11 +51,12 @@ public class JvnObjectImpl implements JvnObject {
     public void jvnLockRead() throws JvnException {
         switch(this.lockState){
             case NL :
-            case RLT:/*  Anyone can READ !*/
+                /*case RLT:  Anyone can READ !!!!!!!!!!!!!!!*/
                 this.object = JvnServerImpl.jvnGetServer().jvnLockRead(this.jvnGetObjectId());
                 this.setLockState(LockState.RLT);
                 break;
             case RLC :
+            case RLT:
                 this.setLockState(LockState.RLT);
                 break;
             case WLC :
@@ -107,17 +108,17 @@ public class JvnObjectImpl implements JvnObject {
 
     public synchronized void jvnInvalidateReader() throws JvnException, InterruptedException {
         switch(this.lockState){
-            case RLC :
             case RLT :
             case RLT_WLC :
-                /*try {
+                try {
                     this.wait();
                 } catch (InterruptedException e) {
                     throw new JvnException("[JVN jvnInvalidateReader (InterruptedException) ] Error : "+e.getMessage());
-                }*/
+                }
                 this.setLockState(LockState.NL);
                 break;
             case NL:
+            case RLC :
                 break;
             default :// NL, WLC, WLT
                 throw new JvnException("[JVN jvnInvalidateReader ] Error state: "+this.lockState);
@@ -129,7 +130,7 @@ public class JvnObjectImpl implements JvnObject {
             case WLC :
                 this.setLockState(LockState.NL);
                 break;
-            case WLT :
+            case WLT :/* !!!!!! */
                 this.wait();
                 break;
             case RLT_WLC :
